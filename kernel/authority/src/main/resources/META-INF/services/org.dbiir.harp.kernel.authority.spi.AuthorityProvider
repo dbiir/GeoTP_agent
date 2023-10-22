@@ -1,0 +1,2 @@
+org.dbiir.harp.kernel.authority.provider.simple.AllPermittedPrivilegesProvider
+org.dbiir.harp.kernel.authority.provider.database.DatabasePermittedPrivilegesProvider

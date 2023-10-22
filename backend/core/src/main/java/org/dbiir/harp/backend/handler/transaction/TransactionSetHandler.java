@@ -1,0 +1,73 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.dbiir.harp.backend.handler.transaction;
+
+import lombok.RequiredArgsConstructor;
+import org.dbiir.harp.backend.handler.ProxyBackendHandler;
+import org.dbiir.harp.backend.response.header.ResponseHeader;
+import org.dbiir.harp.backend.response.header.update.UpdateResponseHeader;
+import org.dbiir.harp.backend.session.ConnectionSession;
+import org.dbiir.harp.backend.util.TransactionUtils;
+import org.dbiir.harp.utils.common.enums.TransactionAccessType;
+import org.dbiir.harp.utils.common.statement.mysql.MySQLStatement;
+import org.dbiir.harp.utils.common.statement.tcl.SetTransactionStatement;
+
+import java.sql.Connection;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * Set transaction handler.
+ */
+@RequiredArgsConstructor
+public final class TransactionSetHandler implements ProxyBackendHandler {
+    
+    private final SetTransactionStatement sqlStatement;
+    
+    private final ConnectionSession connectionSession;
+    
+    @Override
+    public List<ResponseHeader> execute() {
+        List<ResponseHeader> result = new LinkedList<ResponseHeader>();
+        setReadOnly();
+        setTransactionIsolationLevel();
+        result.add(new UpdateResponseHeader(sqlStatement));
+        return result;
+    }
+    
+    private void setReadOnly() {
+        if (!sqlStatement.getAccessMode().isPresent()) {
+            return;
+        }
+        if (TransactionAccessType.READ_ONLY == sqlStatement.getAccessMode().get()) {
+            connectionSession.setReadOnly(true);
+        } else if (TransactionAccessType.READ_WRITE == sqlStatement.getAccessMode().get()) {
+            connectionSession.setReadOnly(false);
+        }
+    }
+    
+    private void setTransactionIsolationLevel() {
+        if (!sqlStatement.getIsolationLevel().isPresent()) {
+            return;
+        }
+        connectionSession.setDefaultIsolationLevel(sqlStatement instanceof MySQLStatement
+                ? TransactionUtils.getTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ)
+                : TransactionUtils.getTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED));
+        connectionSession.setIsolationLevel(sqlStatement.getIsolationLevel().get());
+    }
+}
