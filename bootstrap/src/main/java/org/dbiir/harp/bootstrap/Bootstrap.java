@@ -25,7 +25,7 @@ public class Bootstrap {
         List<String> addresses = bootstrapArgs.getAddresses();
         new BootstrapInitializer().init(yamlConfig, port, bootstrapArgs.getForce());
         HarpProxy proxy = new HarpProxy();
-        // TODO: create sockets fro async preparation
+        // TODO: create sockets for async preparation
         proxy.startAsyncMessageInternal(configurationProperties.getValue(ConfigurationPropertyKey.PROXY_COORDINATOR_DEFAULT_PORT),
                 configurationProperties.getValue(ConfigurationPropertyKey.PROXY_COORDINATOR_DEFAULT_IP));
         bootstrapArgs.getSocketPath().ifPresent(proxy::start);

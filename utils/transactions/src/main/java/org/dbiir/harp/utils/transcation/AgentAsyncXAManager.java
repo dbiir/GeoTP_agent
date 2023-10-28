@@ -22,9 +22,9 @@ public class AgentAsyncXAManager {
 
     private final Collection<Thread> asyncThreads = new LinkedList<>();
 
-    private HashMap<CustomXID, XATransactionState> XAStates;
+    private final HashMap<CustomXID, XATransactionState> XAStates = new HashMap<>();
 
-    private List<AsyncMessageFromAgent> messages;
+    private final List<AsyncMessageFromAgent> messages = new LinkedList<>();
 
     /**
      *

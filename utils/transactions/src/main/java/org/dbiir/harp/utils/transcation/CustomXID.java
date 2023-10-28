@@ -1,22 +1,23 @@
 package org.dbiir.harp.utils.transcation;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlXid;
 import lombok.ToString;
 
 import javax.transaction.xa.Xid;
+import java.util.Arrays;
 import java.util.List;
 
-@ToString
 public class CustomXID {
 
     byte[] myBqual;
     int myFormatId;
     byte[] myGtrid;
+    String originStr;
 
     public CustomXID(byte[] gtrid, byte[] bqual, int formatId) {
         this.myGtrid = gtrid;
         this.myBqual = bqual;
         this.myFormatId = formatId;
+        this.originStr = Arrays.toString(gtrid) + "," + Arrays.toString(bqual) + "," + formatId;
     }
 
     public CustomXID(byte[] gtrid, byte[] bqual) {
@@ -44,5 +45,24 @@ public class CustomXID {
             this.myBqual = list.get(1).getBytes();
             this.myFormatId = Integer.parseInt(list.get(2));
         }
+        originStr = str;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        boolean ret = false;
+        if (obj instanceof CustomXID other) {
+            ret = originStr.equals(other.originStr);
+        }
+
+        return ret;
+    }
+
+    public int hashCode() {
+        return (this.originStr.hashCode() / 100) * 100 + Integer.parseInt(String.valueOf(myFormatId)) % 100;
+    }
+
+    public String toString() {
+        return this.originStr;
     }
 }

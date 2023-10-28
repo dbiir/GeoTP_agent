@@ -19,27 +19,9 @@ package org.dbiir.harp.frontend.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
-import org.dbiir.harp.backend.context.ProxyContext;
-import org.dbiir.harp.backend.session.ConnectionSession;
-import org.dbiir.harp.db.protocol.constant.CommonConstants;
-import org.dbiir.harp.db.protocol.payload.PacketPayload;
-import org.dbiir.harp.executor.sql.process.ExecuteProcessEngine;
-import org.dbiir.harp.frontend.authentication.AuthenticationResult;
-import org.dbiir.harp.frontend.exception.ExpectedExceptions;
-import org.dbiir.harp.frontend.executor.ConnectionThreadExecutorGroup;
-import org.dbiir.harp.frontend.executor.UserExecutorGroup;
-import org.dbiir.harp.frontend.spi.DatabaseProtocolFrontendEngine;
-import org.dbiir.harp.frontend.state.ProxyStateContext;
-import org.dbiir.harp.kernel.core.rule.TransactionRule;
-import org.dbiir.harp.utils.common.database.type.DatabaseType;
-import org.dbiir.harp.utils.common.metadata.user.Grantee;
-import org.dbiir.harp.utils.common.spi.type.typed.TypedSPILoader;
-
-import java.util.Optional;
 
 /**
  * Frontend channel inbound handler.

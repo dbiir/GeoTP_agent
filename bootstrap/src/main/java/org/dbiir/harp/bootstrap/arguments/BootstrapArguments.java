@@ -79,19 +79,6 @@ public final class BootstrapArguments {
         List<String> addresses = Arrays.asList(args[1].split(","));
         return addresses.stream().filter(InetAddresses::isInetAddress).collect(Collectors.toList());
     }
-    
-    /**
-     * Get unix domain socket path.
-     *
-     * @return socket path
-     */
-    public Optional<String> getSocketPath() {
-        if (args.length < 2) {
-            return Optional.empty();
-        }
-        List<String> addresses = Arrays.asList(args[1].split(","));
-        return addresses.stream().filter(address -> !InetAddresses.isInetAddress(address)).filter(this::isValidPath).findFirst();
-    }
 
     /**
      * Get configuration path.
@@ -99,7 +86,20 @@ public final class BootstrapArguments {
      * @return configuration path
      */
     public String getConfigurationPath() {
-        return args.length < 3 ? DEFAULT_CONFIG_PATH : paddingWithSlash(args[2]);
+        return args.length < 2 ? DEFAULT_CONFIG_PATH : paddingWithSlash(args[1]);
+    }
+    
+    /**
+     * Get unix domain socket path.
+     *
+     * @return socket path
+     */
+    public Optional<String> getSocketPath() {
+        if (args.length < 3) {
+            return Optional.empty();
+        }
+        List<String> addresses = Arrays.asList(args[2].split(","));
+        return addresses.stream().filter(address -> !InetAddresses.isInetAddress(address)).filter(this::isValidPath).findFirst();
     }
 
     /**

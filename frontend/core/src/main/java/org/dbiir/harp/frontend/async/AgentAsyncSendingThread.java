@@ -14,6 +14,14 @@ public class AgentAsyncSendingThread implements Runnable{
     public void run() {
         while (true) {
             AsyncMessageFromAgent message = AgentAsyncXAManager.getInstance().modifyMessages(false, null);
+            while (message == null) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                message = AgentAsyncXAManager.getInstance().modifyMessages(false, null);
+            }
             try {
                 AsyncMessageChannelInboundHandler.sendMessage(serializeObject(message));
             } catch (InterruptedException e) {
