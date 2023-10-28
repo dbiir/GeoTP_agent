@@ -73,10 +73,13 @@ public final class BootstrapArguments {
      * @return address list
      */
     public List<String> getAddresses() {
-        if (args.length < 2) {
+        if (args.length < 3) {
             return Collections.singletonList(DEFAULT_BIND_ADDRESS);
         }
-        List<String> addresses = Arrays.asList(args[1].split(","));
+        List<String> addresses = Arrays.asList(args[2].split(","));
+        for (String str: addresses) {
+            System.out.println("xxxx: " + str);
+        }
         return addresses.stream().filter(InetAddresses::isInetAddress).collect(Collectors.toList());
     }
 

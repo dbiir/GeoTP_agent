@@ -55,8 +55,11 @@ public final class HarpProxy {
     
     private EventLoopGroup workerGroup;
 
-    private EventLoopGroup asyncGroup;
-    
+    private EventLoopGroup asyncBossGroup;
+
+    private EventLoopGroup asyncWorkerGroup;
+
+
     public HarpProxy() {
         createEventLoopGroup();
         createAuxiliaryThreads();
@@ -105,23 +108,37 @@ public final class HarpProxy {
         initServerBootstrap(bootstrap);
         List<ChannelFuture> futures = new ArrayList<>();
         for (String address : addresses) {
+            System.out.println("address: " + address);
             futures.add(bootstrap.bind(address, port).sync());
         }
+
+        Thread thread = new Thread(() -> {
+            try {
+                ServerBootstrap asyncBootstrap = new ServerBootstrap();
+                initAsyncServerBootstrap(asyncBootstrap);
+                asyncBootstrap.bind(3308).sync().channel().closeFuture().sync();
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        thread.start();
+
         return futures;
     }
 
-    @SneakyThrows(InterruptedException.class)
-    public void startAsyncMessageInternal(final int port, final String dst_address) throws InterruptedException {
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(asyncGroup)
-                .channel(NioSocketChannel.class)
-                .handler(new AsyncMessageHandlerInitializer())
-                .option(ChannelOption.SO_KEEPALIVE, true);
-
-        // connect to coordinator
-        bootstrap.connect(dst_address, port).sync().channel().closeFuture().sync();
+    private void initAsyncServerBootstrap(final ServerBootstrap bootstrap) {
+        bootstrap.group(asyncBossGroup, asyncWorkerGroup)
+                .channel(Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+                .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(8 * 1024 * 1024, 16 * 1024 * 1024))
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .option(ChannelOption.SO_REUSEADDR, true)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .childHandler(new AsyncMessageHandlerInitializer());
     }
-    
+
     private ChannelFuture startDomainSocket(final String socketPath) {
         ServerBootstrap bootstrap = new ServerBootstrap();
         initServerBootstrap(bootstrap, new DomainSocketAddress(socketPath));
@@ -146,7 +163,8 @@ public final class HarpProxy {
     private void createEventLoopGroup() {
         bossGroup = Epoll.isAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
         workerGroup = getWorkerGroup();
-        asyncGroup = new NioEventLoopGroup();
+        asyncBossGroup = Epoll.isAvailable() ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
+        asyncWorkerGroup = getWorkerGroup();
     }
     
     private EventLoopGroup getWorkerGroup() {
@@ -177,6 +195,8 @@ public final class HarpProxy {
     private void close() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+        asyncBossGroup.shutdownGracefully();
+        asyncWorkerGroup.shutdownGracefully();
         BackendExecutorContext.getInstance().getExecutorEngine().close();
     }
 }

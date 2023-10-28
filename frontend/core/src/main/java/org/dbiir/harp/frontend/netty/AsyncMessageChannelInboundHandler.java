@@ -63,7 +63,7 @@ public final class AsyncMessageChannelInboundHandler extends ChannelInboundHandl
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        log.info("Received from server: " + msg);
+        log.info("Received from client: " + msg);
     }
 
     @Override
