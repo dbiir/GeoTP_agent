@@ -90,6 +90,6 @@ lockOption
     ;
 
 xid
-    : gtrid=textString (COMMA_ bqual=textString (COMMA_ formatID=NUMBER_)?)?
+    : gtrid=textString (COMMA_ bqual=textString (COMMA_ formatID=HEX_DIGIT_)?)?
     ;
 

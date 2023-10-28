@@ -57802,7 +57802,7 @@ public class MySQLStatementParser extends Parser {
 	public static class XidContext extends ParserRuleContext {
 		public TextStringContext gtrid;
 		public TextStringContext bqual;
-		public Token formatID;
+		public TextStringContext formatID;
 		public List<TextStringContext> textString() {
 			return getRuleContexts(TextStringContext.class);
 		}
@@ -57813,7 +57813,6 @@ public class MySQLStatementParser extends Parser {
 		public TerminalNode COMMA_(int i) {
 			return getToken(MySQLStatementParser.COMMA_, i);
 		}
-		public TerminalNode NUMBER_() { return getToken(MySQLStatementParser.NUMBER_, 0); }
 		public XidContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -57851,7 +57850,7 @@ public class MySQLStatementParser extends Parser {
 					setState(7215);
 					match(COMMA_);
 					setState(7216);
-					((XidContext)_localctx).formatID = match(NUMBER_);
+					((XidContext)_localctx).formatID = textString();
 					}
 				}
 
@@ -69434,7 +69433,7 @@ public class MySQLStatementParser extends Parser {
 		"\u0000\u1c2a\u1c22\u0001\u0000\u0000\u0000\u1c2a\u1c27\u0001\u0000\u0000"+
 		"\u0000\u1c2b\u0417\u0001\u0000\u0000\u0000\u1c2c\u1c33\u0003\u02f6\u017b"+
 		"\u0000\u1c2d\u1c2e\u0005&\u0000\u0000\u1c2e\u1c31\u0003\u02f6\u017b\u0000"+
-		"\u1c2f\u1c30\u0005&\u0000\u0000\u1c30\u1c32\u0005\u0323\u0000\u0000\u1c31"+
+		"\u1c2f\u1c30\u0005&\u0000\u0000\u1c30\u1c32\u0003\u02f6\u017b\u0000\u1c31"+
 		"\u1c2f\u0001\u0000\u0000\u0000\u1c31\u1c32\u0001\u0000\u0000\u0000\u1c32"+
 		"\u1c34\u0001\u0000\u0000\u0000\u1c33\u1c2d\u0001\u0000\u0000\u0000\u1c33"+
 		"\u1c34\u0001\u0000\u0000\u0000\u1c34\u0419\u0001\u0000\u0000\u0000\u1c35"+

@@ -43,7 +43,11 @@ public class CustomXID {
             assert (list.size() <= 3);
             this.myGtrid = list.get(0).getBytes();
             this.myBqual = list.get(1).getBytes();
-            this.myFormatId = Integer.parseInt(list.get(2));
+            if (list.get(2).startsWith("0x")) {
+                this.myFormatId = Integer.parseInt(list.get(2).substring(2), 16);
+            } else {
+                this.myFormatId = Integer.parseInt(list.get(2));
+            }
         }
         originStr = str;
     }
