@@ -24,7 +24,6 @@ import org.dbiir.harp.merger.decorator.ResultDecoratorEngine;
 import org.dbiir.harp.merger.merger.ResultMerger;
 import org.dbiir.harp.merger.merger.ResultMergerEngine;
 import org.dbiir.harp.merger.result.MergedResult;
-import org.dbiir.harp.merger.result.impl.local.LocalDataMergedResult;
 import org.dbiir.harp.merger.result.impl.transparent.TransparentMergedResult;
 import org.dbiir.harp.utils.binder.statement.SQLStatementContext;
 import org.dbiir.harp.utils.common.config.props.ConfigurationProperties;

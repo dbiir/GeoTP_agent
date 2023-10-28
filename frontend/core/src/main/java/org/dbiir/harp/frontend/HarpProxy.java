@@ -17,7 +17,6 @@
 
 package org.dbiir.harp.frontend;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -27,20 +26,17 @@ import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.dbiir.harp.backend.context.BackendExecutorContext;
-import org.dbiir.harp.frontend.async.AgentAsyncPrepare;
 import org.dbiir.harp.frontend.async.AgentAsyncSendingThread;
 import org.dbiir.harp.frontend.netty.AsyncMessageHandlerInitializer;
 import org.dbiir.harp.frontend.netty.ServerHandlerInitializer;
 import org.dbiir.harp.frontend.protocol.FrontDatabaseProtocolTypeFactory;
 import org.dbiir.harp.utils.transcation.AgentAsyncThreadCollector;
-import org.dbiir.harp.utils.transcation.AgentAsyncXAManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +104,6 @@ public final class HarpProxy {
         initServerBootstrap(bootstrap);
         List<ChannelFuture> futures = new ArrayList<>();
         for (String address : addresses) {
-            System.out.println("address: " + address);
             futures.add(bootstrap.bind(address, port).sync());
         }
 

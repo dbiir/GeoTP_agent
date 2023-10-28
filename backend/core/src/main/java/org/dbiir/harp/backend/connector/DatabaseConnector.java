@@ -39,6 +39,7 @@ import org.dbiir.harp.executor.sql.execute.result.update.UpdateResult;
 import org.dbiir.harp.executor.sql.prepare.driver.DriverExecutionPrepareEngine;
 import org.dbiir.harp.executor.sql.prepare.driver.jdbc.StatementOption;
 import org.dbiir.harp.kernel.transaction.api.TransactionType;
+import org.dbiir.harp.merger.MergeEngine;
 import org.dbiir.harp.merger.result.MergedResult;
 import org.dbiir.harp.mode.metadata.MetaDataContexts;
 import org.dbiir.harp.utils.binder.QueryContext;
@@ -48,6 +49,7 @@ import org.dbiir.harp.utils.binder.statement.dml.InsertStatementContext;
 import org.dbiir.harp.utils.common.config.props.ConfigurationPropertyKey;
 import org.dbiir.harp.utils.common.metadata.database.AgentDatabase;
 import org.dbiir.harp.utils.common.metadata.database.schema.util.SystemSchemaUtils;
+import org.dbiir.harp.utils.common.rule.identifier.type.DataNodeContainedRule;
 import org.dbiir.harp.utils.common.statement.SQLStatement;
 import org.dbiir.harp.utils.common.statement.dml.DMLStatement;
 import org.dbiir.harp.utils.common.statement.dml.SelectStatement;
@@ -214,6 +216,7 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
 
     private QueryResponseHeader processExecuteQuery(final ExecutionContext executionContext, final List<QueryResult> queryResults, final QueryResult queryResultSample) throws SQLException {
         queryHeaders = createQueryHeaders(executionContext, queryResultSample);
+        mergedResult = mergeQuery(executionContext.getSqlStatementContext(), queryResults);
         return new QueryResponseHeader(queryHeaders);
     }
     
@@ -239,7 +242,13 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
                                           final QueryResult queryResultSample, final AgentDatabase database, final int columnIndex) throws SQLException {
         return queryHeaderBuilderEngine.build(queryResultSample.getMetaData(), database, columnIndex);
     }
-    
+
+    private MergedResult mergeQuery(final SQLStatementContext<?> sqlStatementContext, final List<QueryResult> queryResults) throws SQLException {
+        MergeEngine mergeEngine = new MergeEngine(database, ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getProps(),
+                backendConnection.getConnectionSession().getConnectionContext());
+        return mergeEngine.merge(queryResults, sqlStatementContext);
+    }
+
     private UpdateResponseHeader processExecuteUpdate(final ExecutionContext executionContext, final Collection<UpdateResult> updateResults) {
         Optional<GeneratedKeyContext> generatedKeyContext = executionContext.getSqlStatementContext() instanceof InsertStatementContext
                 ? ((InsertStatementContext) executionContext.getSqlStatementContext()).getGeneratedKeyContext()
@@ -247,7 +256,30 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
         Collection<Comparable<?>> autoIncrementGeneratedValues =
                 generatedKeyContext.filter(GeneratedKeyContext::isSupportAutoIncrement).map(GeneratedKeyContext::getGeneratedValues).orElseGet(Collections::emptyList);
         UpdateResponseHeader result = new UpdateResponseHeader(executionContext.getSqlStatementContext().getSqlStatement(), updateResults, autoIncrementGeneratedValues);
+        mergeUpdateCount(executionContext.getSqlStatementContext(), result);
         return result;
+    }
+
+    private void mergeUpdateCount(final SQLStatementContext<?> sqlStatementContext, final UpdateResponseHeader response) {
+        if (isNeedAccumulate(sqlStatementContext)) {
+            response.mergeUpdateCount();
+        }
+    }
+
+    private boolean isNeedAccumulate(final SQLStatementContext<?> sqlStatementContext) {
+        Optional<DataNodeContainedRule> dataNodeContainedRule = database.getRuleMetaData().findSingleRule(DataNodeContainedRule.class);
+        return dataNodeContainedRule.isPresent() && dataNodeContainedRule.get().isNeedAccumulate(sqlStatementContext.getTablesContext().getTableNames());
+    }
+
+    /**
+     * Goto next result value.
+     *
+     * @return has more result value or not
+     * @throws SQLException SQL exception
+     */
+    @Override
+    public boolean next() throws SQLException {
+        return null != mergedResult && mergedResult.next();
     }
 
     /**

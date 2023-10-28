@@ -77,9 +77,6 @@ public final class BootstrapArguments {
             return Collections.singletonList(DEFAULT_BIND_ADDRESS);
         }
         List<String> addresses = Arrays.asList(args[2].split(","));
-        for (String str: addresses) {
-            System.out.println("xxxx: " + str);
-        }
         return addresses.stream().filter(InetAddresses::isInetAddress).collect(Collectors.toList());
     }
 
