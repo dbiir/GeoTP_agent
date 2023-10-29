@@ -94,7 +94,9 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
                 return backendHandler.execute();
             case "COMMIT":
             case "ROLLBACK":
-                checkTransactionStateWhileCommitOrAbort();
+                if (AgentAsyncXAManager.getInstance().asyncPreparation()) {
+                    checkTransactionStateWhileCommitOrAbort();
+                }
                 try {
                     return backendHandler.execute();
                 } finally {

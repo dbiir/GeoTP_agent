@@ -15,31 +15,20 @@
  * limitations under the License.
  */
 
-package org.dbiir.harp.backend.config.yaml;
+package org.dbiir.harp.backend.config.sharding.exception.metadata;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.dbiir.harp.backend.config.sharding.yaml.config.YamlShardingRuleConfiguration;
-import org.dbiir.harp.utils.common.yaml.YamlConfiguration;
-import org.dbiir.harp.utils.common.yaml.config.pojo.rule.YamlRuleConfiguration;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import org.dbiir.harp.backend.config.sharding.exception.ShardingSQLException;
+import org.dbiir.harp.utils.exceptions.external.sql.sqlstate.XOpenSQLState;
 
 /**
- * YAML database configuration for ShardingSphere-Proxy.
+ * Binding table not found exception.
  */
-@Getter
-@Setter
-public final class YamlProxyDatabaseConfiguration implements YamlConfiguration {
+public final class BindingTableNotFoundException extends ShardingSQLException {
     
-    private String databaseName;
+    private static final long serialVersionUID = -8845309665057958820L;
     
-    private String schemaName;
-    
-    private Map<String, YamlProxyDataSourceConfiguration> dataSources = new HashMap<>();
-    
-    private Collection<YamlRuleConfiguration> rules = new LinkedList<>();
+    public BindingTableNotFoundException(final String dataSource, final String logicTable, final String otherActualTable) {
+        super(XOpenSQLState.CHECK_OPTION_VIOLATION, 5,
+                "Can not find binding actual table, data source is `%s`, logic table is `%s`, other actual table is `%s`.", dataSource, logicTable, otherActualTable);
+    }
 }

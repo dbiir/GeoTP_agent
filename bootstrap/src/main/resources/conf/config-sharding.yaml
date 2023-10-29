@@ -48,7 +48,7 @@
 #- !SHARDING
 #  tables:
 #    t_order:
-#      actualDataNodes: ds_${0..1}.t_order_${0..1}
+#      actualDataNodes: ds_0.t_order_${0..1}
 #      tableStrategy:
 #        standard:
 #          shardingColumn: order_id
@@ -61,7 +61,7 @@
 #          - sharding_key_required_auditor
 #        allowHintDisable: true
 #    t_order_item:
-#      actualDataNodes: ds_${0..1}.t_order_item_${0..1}
+#      actualDataNodes: ds_0.t_order_item_${0..1}
 #      tableStrategy:
 #        standard:
 #          shardingColumn: order_id
@@ -132,12 +132,12 @@ dataSources:
 #    maxPoolSize: 200
 #    minPoolSize: 1
 
-#rules:
-#  - !SHARDING
-#    bindingTables:
-#      - warehouse, customer
-#      - stock, district, order_line
-#      - usertable
+rules:
+  - !SHARDING
+    bindingTables:
+      - warehouse, customer
+      - stock, district, order_line
+      - usertable
 #    defaultDatabaseStrategy:
 #      none:
 #    defaultTableStrategy:
@@ -145,10 +145,10 @@ dataSources:
 #    keyGenerators:
 #      snowflake:
 #        type: SNOWFLAKE
-#    tables:
-##      ycsb
-#      usertable:
-#        actualDataNodes: ds_${0..1}.usertable
+    tables:
+#      ycsb
+      usertable:
+        actualDataNodes: ds_0.usertable
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: ycsb_key
@@ -157,64 +157,64 @@ dataSources:
 #      config:
 #        actualDataNodes: ds_0.config
 #
-#      warehouse:
-#        actualDataNodes: ds_${0..1}.warehouse
+      warehouse:
+        actualDataNodes: ds_0.warehouse
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: w_id
 #            shardingAlgorithmName: mod_2
 #
-#      district:
-#        actualDataNodes: ds_${0..1}.district
+      district:
+        actualDataNodes: ds_0.district
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: d_w_id
 #            shardingAlgorithmName: mod_2
 #
-#      customer:
-#        actualDataNodes: ds_${0..1}.customer
+      customer:
+        actualDataNodes: ds_0.customer
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: c_w_id
 #            shardingAlgorithmName: mod_2
 #
-#      item:
-#        actualDataNodes: ds_${0..1}.item
+      item:
+        actualDataNodes: ds_0.item
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: i_id
 #            shardingAlgorithmName: mod_2
 #
-#      history:
-#        actualDataNodes: ds_${0..1}.history
+      history:
+        actualDataNodes: ds_0.history
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: h_w_id
 #            shardingAlgorithmName: mod_2
 #
-#      oorder:
-#        actualDataNodes: ds_${0..1}.oorder
+      oorder:
+        actualDataNodes: ds_0.oorder
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: o_w_id
 #            shardingAlgorithmName: mod_2
 #
-#      stock:
-#        actualDataNodes: ds_${0..1}.stock
+      stock:
+        actualDataNodes: ds_0.stock
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: s_w_id
 #            shardingAlgorithmName: mod_2
 #
-#      new_order:
-#        actualDataNodes: ds_${0..1}.new_order
+      new_order:
+        actualDataNodes: ds_0.new_order
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: no_w_id
 #            shardingAlgorithmName: mod_2
 #
-#      order_line:
-#        actualDataNodes: ds_${0..1}.order_line
+      order_line:
+        actualDataNodes: ds_0.order_line
 #        databaseStrategy:
 #          standard:
 #            shardingColumn: ol_w_id
@@ -233,7 +233,7 @@ dataSources:
 #- !SHARDING
 #  tables:
 #    t_order:
-#      actualDataNodes: ds_${0..1}.t_order_${0..1}
+#      actualDataNodes: ds_0.t_order_${0..1}
 #      tableStrategy:
 #        standard:
 #          shardingColumn: order_id
@@ -246,7 +246,7 @@ dataSources:
 #          - sharding_key_required_auditor
 #        allowHintDisable: true
 #    t_order_item:
-#      actualDataNodes: ds_${0..1}.t_order_item_${0..1}
+#      actualDataNodes: ds_0.t_order_item_${0..1}
 #      tableStrategy:
 #        standard:
 #          shardingColumn: order_id

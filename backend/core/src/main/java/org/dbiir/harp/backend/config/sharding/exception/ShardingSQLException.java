@@ -15,31 +15,22 @@
  * limitations under the License.
  */
 
-package org.dbiir.harp.backend.config.yaml;
+package org.dbiir.harp.backend.config.sharding.exception;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.dbiir.harp.backend.config.sharding.yaml.config.YamlShardingRuleConfiguration;
-import org.dbiir.harp.utils.common.yaml.YamlConfiguration;
-import org.dbiir.harp.utils.common.yaml.config.pojo.rule.YamlRuleConfiguration;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import org.dbiir.harp.utils.exceptions.external.sql.sqlstate.SQLState;
+import org.dbiir.harp.utils.exceptions.external.sql.type.feature.FeatureSQLException;
 
 /**
- * YAML database configuration for ShardingSphere-Proxy.
+ * Sharding SQL exception.
  */
-@Getter
-@Setter
-public final class YamlProxyDatabaseConfiguration implements YamlConfiguration {
+public abstract class ShardingSQLException extends FeatureSQLException {
     
-    private String databaseName;
+    private static final long serialVersionUID = 3711541889264606386L;
     
-    private String schemaName;
+    private static final int FEATURE_CODE = 0;
     
-    private Map<String, YamlProxyDataSourceConfiguration> dataSources = new HashMap<>();
-    
-    private Collection<YamlRuleConfiguration> rules = new LinkedList<>();
+    public ShardingSQLException(final SQLState sqlState, final int errorCode, final String reason, final Object... messageArgs) {
+        super(sqlState, FEATURE_CODE, errorCode, reason, messageArgs);
+    }
 }

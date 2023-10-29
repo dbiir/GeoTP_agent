@@ -67,6 +67,10 @@
     <file url="file://$PROJECT_DIR$/parser/type/mysql/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parser/type/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parser/type/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/sharding/api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/sharding/api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/sharding/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/sharding/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/utils/binder/src/main/java" charset="UTF-8" />

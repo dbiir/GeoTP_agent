@@ -46,8 +46,8 @@ public final class YamlEngine {
      */
     public static <T extends YamlConfiguration> T unmarshal(final File yamlFile, final Class<T> classType) throws IOException {
         try (
-                FileInputStream fileInputStream = new FileInputStream(yamlFile);
-                InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream)) {
+            FileInputStream fileInputStream = new FileInputStream(yamlFile);
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream)) {
             return new Yaml(new AgentYamlConstructor(classType)).loadAs(inputStreamReader, classType);
         }
     }

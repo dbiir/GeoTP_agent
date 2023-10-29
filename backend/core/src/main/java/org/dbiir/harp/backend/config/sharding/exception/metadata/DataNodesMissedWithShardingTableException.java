@@ -15,31 +15,19 @@
  * limitations under the License.
  */
 
-package org.dbiir.harp.backend.config.yaml;
+package org.dbiir.harp.backend.config.sharding.exception.metadata;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.dbiir.harp.backend.config.sharding.yaml.config.YamlShardingRuleConfiguration;
-import org.dbiir.harp.utils.common.yaml.YamlConfiguration;
-import org.dbiir.harp.utils.common.yaml.config.pojo.rule.YamlRuleConfiguration;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import org.dbiir.harp.backend.config.sharding.exception.ShardingSQLException;
+import org.dbiir.harp.utils.exceptions.external.sql.sqlstate.XOpenSQLState;
 
 /**
- * YAML database configuration for ShardingSphere-Proxy.
+ * Data nodes missed with sharding table exception.
  */
-@Getter
-@Setter
-public final class YamlProxyDatabaseConfiguration implements YamlConfiguration {
+public final class DataNodesMissedWithShardingTableException extends ShardingSQLException {
     
-    private String databaseName;
+    private static final long serialVersionUID = 1691113459377955727L;
     
-    private String schemaName;
-    
-    private Map<String, YamlProxyDataSourceConfiguration> dataSources = new HashMap<>();
-    
-    private Collection<YamlRuleConfiguration> rules = new LinkedList<>();
+    public DataNodesMissedWithShardingTableException(final String tableName) {
+        super(XOpenSQLState.CHECK_OPTION_VIOLATION, 3, "Data nodes must be configured for sharding table `%s`.", tableName);
+    }
 }

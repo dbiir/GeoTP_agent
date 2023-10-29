@@ -19,6 +19,7 @@
         <module>merger</module>
         <module>parser</module>
         <module>executor</module>
+        <module>sharding</module>
     </modules>
 
     <properties>

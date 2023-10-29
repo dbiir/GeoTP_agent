@@ -15,31 +15,37 @@
  * limitations under the License.
  */
 
-package org.dbiir.harp.backend.config.yaml;
+package org.dbiir.harp.backend.config.sharding.yaml.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dbiir.harp.backend.config.sharding.yaml.config.YamlShardingRuleConfiguration;
-import org.dbiir.harp.utils.common.yaml.YamlConfiguration;
+import org.dbiir.harp.backend.config.sharding.yaml.config.rule.YamlShardingAutoTableRuleConfiguration;
+import org.dbiir.harp.backend.config.sharding.yaml.config.rule.YamlTableRuleConfiguration;
+import org.dbiir.harp.backend.config.sharding.yaml.ShardingRuleConfiguration;
 import org.dbiir.harp.utils.common.yaml.config.pojo.rule.YamlRuleConfiguration;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * YAML database configuration for ShardingSphere-Proxy.
+ * Sharding rule configuration for YAML.
  */
 @Getter
 @Setter
-public final class YamlProxyDatabaseConfiguration implements YamlConfiguration {
+public final class YamlShardingRuleConfiguration implements YamlRuleConfiguration {
     
-    private String databaseName;
+    private Map<String, YamlTableRuleConfiguration> tables = new LinkedHashMap<>();
     
-    private String schemaName;
+    private Map<String, YamlShardingAutoTableRuleConfiguration> autoTables = new LinkedHashMap<>();
     
-    private Map<String, YamlProxyDataSourceConfiguration> dataSources = new HashMap<>();
-    
-    private Collection<YamlRuleConfiguration> rules = new LinkedList<>();
+    private Collection<String> bindingTables = new LinkedList<>();
+
+    private String defaultShardingColumn;
+
+    @Override
+    public Class<ShardingRuleConfiguration> getRuleConfigurationType() {
+        return ShardingRuleConfiguration.class;
+    }
 }

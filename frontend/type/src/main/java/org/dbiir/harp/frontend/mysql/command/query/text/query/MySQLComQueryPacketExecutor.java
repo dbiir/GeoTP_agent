@@ -136,17 +136,19 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
             throw ex;
         } finally {
             // async prepare if it is last query;
-            DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
-            if (isOnePhaseLastQuery()) {
-                AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType,  true);
-                Thread thread = new Thread(agentAsyncPrepare);
-                AgentAsyncXAManager.getInstance().addAsyncThread(thread);
-                thread.start();
-            } else if (isLastQuery()) {
-                AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType, false);
-                Thread thread = new Thread(agentAsyncPrepare);
-                AgentAsyncXAManager.getInstance().addAsyncThread(thread);
-                thread.start();
+            if (AgentAsyncXAManager.getInstance().asyncPreparation()) {
+                DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
+                if (isOnePhaseLastQuery()) {
+                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType,  true);
+                    Thread thread = new Thread(agentAsyncPrepare);
+                    AgentAsyncXAManager.getInstance().addAsyncThread(thread);
+                    thread.start();
+                } else if (isLastQuery()) {
+                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType, false);
+                    Thread thread = new Thread(agentAsyncPrepare);
+                    AgentAsyncXAManager.getInstance().addAsyncThread(thread);
+                    thread.start();
+                }
             }
         }
         

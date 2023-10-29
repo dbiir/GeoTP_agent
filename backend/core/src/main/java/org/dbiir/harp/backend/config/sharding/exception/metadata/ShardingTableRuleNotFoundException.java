@@ -15,31 +15,21 @@
  * limitations under the License.
  */
 
-package org.dbiir.harp.backend.config.yaml;
+package org.dbiir.harp.backend.config.sharding.exception.metadata;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.dbiir.harp.backend.config.sharding.yaml.config.YamlShardingRuleConfiguration;
-import org.dbiir.harp.utils.common.yaml.YamlConfiguration;
-import org.dbiir.harp.utils.common.yaml.config.pojo.rule.YamlRuleConfiguration;
+import org.dbiir.harp.backend.config.sharding.exception.ShardingSQLException;
+import org.dbiir.harp.utils.exceptions.external.sql.sqlstate.XOpenSQLState;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
 
 /**
- * YAML database configuration for ShardingSphere-Proxy.
+ * Sharding table rule not found exception.
  */
-@Getter
-@Setter
-public final class YamlProxyDatabaseConfiguration implements YamlConfiguration {
+public final class ShardingTableRuleNotFoundException extends ShardingSQLException {
     
-    private String databaseName;
+    private static final long serialVersionUID = 142299282103233064L;
     
-    private String schemaName;
-    
-    private Map<String, YamlProxyDataSourceConfiguration> dataSources = new HashMap<>();
-    
-    private Collection<YamlRuleConfiguration> rules = new LinkedList<>();
+    public ShardingTableRuleNotFoundException(final Collection<String> logicTables) {
+        super(XOpenSQLState.CHECK_OPTION_VIOLATION, 0, "Can not find table rule with logic tables `%s`.", logicTables.toString());
+    }
 }

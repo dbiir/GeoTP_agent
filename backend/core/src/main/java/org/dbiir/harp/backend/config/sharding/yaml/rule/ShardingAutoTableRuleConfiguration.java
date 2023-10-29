@@ -15,31 +15,27 @@
  * limitations under the License.
  */
 
-package org.dbiir.harp.backend.config.yaml;
+package org.dbiir.harp.backend.config.sharding.yaml.rule;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.dbiir.harp.backend.config.sharding.yaml.config.YamlShardingRuleConfiguration;
-import org.dbiir.harp.utils.common.yaml.YamlConfiguration;
-import org.dbiir.harp.utils.common.yaml.config.pojo.rule.YamlRuleConfiguration;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
 
 /**
- * YAML database configuration for ShardingSphere-Proxy.
+ * Sharding auto table rule configuration.
  */
+@RequiredArgsConstructor
 @Getter
 @Setter
-public final class YamlProxyDatabaseConfiguration implements YamlConfiguration {
+public final class ShardingAutoTableRuleConfiguration {
     
-    private String databaseName;
+    private final String logicTable;
     
-    private String schemaName;
+    private final String actualDataSources;
     
-    private Map<String, YamlProxyDataSourceConfiguration> dataSources = new HashMap<>();
-    
-    private Collection<YamlRuleConfiguration> rules = new LinkedList<>();
+//    private ShardingStrategyConfiguration shardingStrategy;
+//
+//    private KeyGenerateStrategyConfiguration keyGenerateStrategy;
+//
+//    private ShardingAuditStrategyConfiguration auditStrategy;
 }
