@@ -27,6 +27,7 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/frontend/akak/pom.xml" />
+        <option value="$PROJECT_DIR$/sharding/pom.xml" />
       </set>
     </option>
   </component>

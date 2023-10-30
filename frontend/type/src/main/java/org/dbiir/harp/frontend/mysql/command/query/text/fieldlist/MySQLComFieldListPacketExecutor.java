@@ -51,7 +51,7 @@ import java.util.LinkedList;
 @RequiredArgsConstructor
 public final class MySQLComFieldListPacketExecutor implements CommandExecutor {
     
-    private static final String SQL = "SHOW COLUMNS FROM %s FROM %s";
+    private static final String SQL = "SHOW COLUMNS FROM %s";
     
     private final MySQLComFieldListPacket packet;
     
@@ -62,7 +62,7 @@ public final class MySQLComFieldListPacketExecutor implements CommandExecutor {
     @Override
     public Collection<DatabasePacket<?>> execute() throws SQLException {
         String databaseName = connectionSession.getDefaultDatabaseName();
-        String sql = String.format(SQL, packet.getTable(), databaseName);
+        String sql = String.format(SQL, packet.getTable());
         MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
         SQLParserRule sqlParserRule = metaDataContexts.getMetaData().getGlobalRuleMetaData().getSingleRule(SQLParserRule.class);
         SQLStatement sqlStatement = sqlParserRule.getSQLParserEngine(TypedSPILoader.getService(DatabaseType.class, "MySQL").getType()).parse(sql);
