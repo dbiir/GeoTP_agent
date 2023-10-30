@@ -39,7 +39,6 @@ import org.dbiir.harp.frontend.mysql.command.query.builder.ResponsePacketBuilder
 import org.dbiir.harp.mode.metadata.MetaDataContexts;
 import org.dbiir.harp.parser.rule.SQLParserRule;
 import org.dbiir.harp.utils.common.database.type.DatabaseType;
-import org.dbiir.harp.utils.common.database.type.dialect.MySQLDatabaseType;
 import org.dbiir.harp.utils.common.spi.type.typed.TypedSPILoader;
 import org.dbiir.harp.utils.common.statement.SQLStatement;
 import org.dbiir.harp.utils.common.statement.dal.EmptyStatement;
@@ -67,6 +66,10 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     
     @Getter
     private volatile ResponseType responseType;
+
+    boolean isLast = false;
+
+    boolean isLastOnePhase = false;
     
     public MySQLComQueryPacketExecutor(final MySQLComQueryPacket packet, final ConnectionSession connectionSession) throws SQLException {
         this.connectionSession = connectionSession;
@@ -83,6 +86,9 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
                 proxyBackendHandler = new MySQLMultiStatementsHandler(connectionSession, sqlStatements, packet.getSql(), false);
             }
         }
+
+        isLastOnePhase = this.isLastOnePhaseQuery(packet.getSql());
+        isLast = this.isLastQuery(packet.getSql());
         
         characterSet = connectionSession.getAttributeMap().attr(MySQLConstants.MYSQL_CHARACTER_SET_ATTRIBUTE_KEY).get().getId();
     }
@@ -138,16 +144,14 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
             // async prepare if it is last query;
             if (AgentAsyncXAManager.getInstance().asyncPreparation()) {
                 DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
-                if (isOnePhaseLastQuery()) {
+                if (isLastOnePhase) {
                     AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType,  true);
                     Thread thread = new Thread(agentAsyncPrepare);
                     AgentAsyncXAManager.getInstance().addAsyncThread(thread);
-                    thread.start();
-                } else if (isLastQuery()) {
+                } else if (isLast) {
                     AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType, false);
                     Thread thread = new Thread(agentAsyncPrepare);
                     AgentAsyncXAManager.getInstance().addAsyncThread(thread);
-                    thread.start();
                 }
             }
         }
@@ -165,12 +169,12 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
         return result;
     }
 
-    private boolean isLastQuery() {
-        return connectionSession.getQueryContext().getSql().contains("/*last query*/");
+    private boolean isLastQuery(String sql) {
+        return sql.contains("/*last query*/");
     }
 
-    private boolean isOnePhaseLastQuery() {
-        return connectionSession.getQueryContext().getSql().contains("/*last one phase query*/");
+    private boolean isLastOnePhaseQuery(String sql) {
+        return sql.contains("/*last one phase query*/");
     }
     
     private Collection<DatabasePacket<?>> processQuery(final QueryResponseHeader queryResponseHeader) {
