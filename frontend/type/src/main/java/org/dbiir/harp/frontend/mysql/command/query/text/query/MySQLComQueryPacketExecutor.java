@@ -72,6 +72,7 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     boolean isLastOnePhase = false;
     
     public MySQLComQueryPacketExecutor(final MySQLComQueryPacket packet, final ConnectionSession connectionSession) throws SQLException {
+//        System.out.println("Thread " + Thread.currentThread().getId() + " " + Thread.currentThread().getName() + "connectionSession: " + connectionSession);
         this.connectionSession = connectionSession;
         DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
         SQLStatement sqlStatement = parseSql1(packet.getSql(), databaseType);

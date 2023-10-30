@@ -27,7 +27,6 @@ import org.dbiir.harp.backend.response.header.ResponseHeader;
 import org.dbiir.harp.backend.session.ConnectionSession;
 import org.dbiir.harp.utils.binder.QueryContext;
 import org.dbiir.harp.utils.binder.statement.SQLStatementContext;
-import org.dbiir.harp.utils.common.statement.SQLStatement;
 import org.dbiir.harp.utils.common.statement.tcl.TCLStatement;
 import org.dbiir.harp.utils.common.statement.tcl.XAStatement;
 import org.dbiir.harp.utils.transcation.AgentAsyncXAManager;
@@ -72,6 +71,7 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
     
     @Override
     public List<ResponseHeader> execute() throws SQLException {
+//        System.out.println("backendHandler: " + backendHandler);
         CustomXID customXID = new CustomXID(tclStatement.getXid());
         switch (tclStatement.getOp()) {
             case "START":
@@ -86,6 +86,7 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
 
                 AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.ACTIVE);
                 connectionSession.getConnectionContext().getTransactionContext().setInTransaction(true);
+                connectionSession.getTransactionStatus().setInTransaction(true);
                 connectionSession.setXID(customXID);
                 return header;
             case "END":
@@ -107,6 +108,7 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
                         log.error("xa transaction state is not recorded!");
                     }
                     connectionSession.setCurrentTransactionOk(true);
+                    connectionSession.getConnectionContext().getTransactionContext().setInTransaction(false);
                 }
             default:
                 throw new SQLFeatureNotSupportedException(String.format("unrecognized XA statement `%s`", tclStatement.getOp()));

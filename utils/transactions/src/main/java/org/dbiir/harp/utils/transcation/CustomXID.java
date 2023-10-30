@@ -29,6 +29,8 @@ public class CustomXID {
     }
 
     public CustomXID(String str) {
+        if (str == null)
+            str = "";
         List<String> list = List.of(str.split(","));
 
         if (list.size() == 1) {
