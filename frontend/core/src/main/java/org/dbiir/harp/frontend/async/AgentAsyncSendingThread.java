@@ -1,5 +1,7 @@
 package org.dbiir.harp.frontend.async;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dbiir.harp.frontend.netty.AsyncMessageChannelInboundHandler;
 import org.dbiir.harp.utils.transcation.AgentAsyncXAManager;
 import org.dbiir.harp.utils.transcation.AsyncMessageFromAgent;
@@ -23,8 +25,9 @@ public class AgentAsyncSendingThread implements Runnable{
                 message = AgentAsyncXAManager.getInstance().modifyMessages(false, null);
             }
             try {
-                AsyncMessageChannelInboundHandler.sendMessage(serializeObject(message));
-            } catch (InterruptedException e) {
+                ObjectMapper mapper = new ObjectMapper();
+                AsyncMessageChannelInboundHandler.sendMessage(mapper.writeValueAsBytes(message));
+            } catch (InterruptedException | JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
         }
