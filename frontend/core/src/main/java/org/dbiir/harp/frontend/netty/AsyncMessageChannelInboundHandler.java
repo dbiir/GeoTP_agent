@@ -18,10 +18,26 @@
 package org.dbiir.harp.frontend.netty;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ByteProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.dbiir.harp.frontend.async.AsyncMessageDecoder;
+import org.dbiir.harp.utils.common.util.SQLUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.ScatteringByteChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Frontend channel inbound handler.
@@ -39,6 +55,7 @@ public final class AsyncMessageChannelInboundHandler extends ChannelInboundHandl
 
     public static void sendMessage(String message) throws InterruptedException {
         if (context != null) {
+            context.write(message.length());
             context.writeAndFlush(message).sync();
         } else {
             System.err.println("ChannelHandlerContext is not initialized.");
@@ -47,15 +64,11 @@ public final class AsyncMessageChannelInboundHandler extends ChannelInboundHandl
 
     public static void sendMessage(byte[] message) throws InterruptedException {
         if (context != null) {
-            context.writeAndFlush(Unpooled.wrappedBuffer(message)).sync();
-        } else {
-            System.err.println("ChannelHandlerContext is not initialized.");
-        }
-    }
-
-    public static void sendMessage(ByteBuf message) throws InterruptedException {
-        if (context != null) {
-            context.writeAndFlush(message).sync();
+            byte[] len = SQLUtils.intToByteArray(message.length);
+            byte[] out = new byte[len.length + message.length];
+            System.arraycopy(len, 0, out, 0, len.length);
+            System.arraycopy(message, 0, out, len.length, message.length);
+            context.writeAndFlush(Unpooled.wrappedBuffer(out)).sync();
         } else {
             System.err.println("ChannelHandlerContext is not initialized.");
         }

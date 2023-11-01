@@ -63,16 +63,17 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     private final ProxyBackendHandler proxyBackendHandler;
     
     private final int characterSet;
+
+    private static final String COMMENT_PREFIX = "/*";
+
+    private static final String COMMENT_SUFFIX = "*/";
     
     @Getter
     private volatile ResponseType responseType;
-
-    boolean isLast = false;
-
-    boolean isLastOnePhase = false;
     
     public MySQLComQueryPacketExecutor(final MySQLComQueryPacket packet, final ConnectionSession connectionSession) throws SQLException {
 //        System.out.println("Thread " + Thread.currentThread().getId() + " " + Thread.currentThread().getName() + "connectionSession: " + connectionSession);
+        System.out.println("execute: " + packet.getSql());
         this.connectionSession = connectionSession;
         DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
         SQLStatement sqlStatement = parseSql1(packet.getSql(), databaseType);
@@ -88,9 +89,9 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
             }
         }
 
-        isLastOnePhase = this.isLastOnePhaseQuery(packet.getSql());
-        isLast = this.isLastQuery(packet.getSql());
-        
+        this.connectionSession.setLastOnePhase(this.isLastOnePhaseQuery(packet.getSql()));
+        this.connectionSession.setLast(this.isLastQuery(packet.getSql()));
+
         characterSet = connectionSession.getAttributeMap().attr(MySQLConstants.MYSQL_CHARACTER_SET_ATTRIBUTE_KEY).get().getId();
     }
 
@@ -135,26 +136,12 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
         Collection<DatabasePacket<?>> result = new LinkedList<>();
         List<ResponseHeader> responseHeader;
         try {
-            // long startTime = System.currentTimeMillis();
+             long startTime = System.currentTimeMillis();
             responseHeader = proxyBackendHandler.execute();
-            // System.out.println("executeTime: " + (System.currentTimeMillis() - startTime) + " ms");=
+             System.out.println("executeTime: " + (System.currentTimeMillis() - startTime) + " ms");
         } catch (SQLException ex) {
             connectionSession.setCurrentTransactionOk(false);
             throw ex;
-        } finally {
-            // async prepare if it is last query;
-            if (AgentAsyncXAManager.getInstance().asyncPreparation()) {
-                DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
-                if (isLastOnePhase) {
-                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType,  true);
-                    Thread thread = new Thread(agentAsyncPrepare);
-                    AgentAsyncXAManager.getInstance().addAsyncThread(thread);
-                } else if (isLast) {
-                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType, false);
-                    Thread thread = new Thread(agentAsyncPrepare);
-                    AgentAsyncXAManager.getInstance().addAsyncThread(thread);
-                }
-            }
         }
         
         for (ResponseHeader each : responseHeader) {
@@ -171,11 +158,20 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     }
 
     private boolean isLastQuery(String sql) {
-        return sql.contains("/*last query*/");
+        return getComment(sql).equals("last query");
     }
 
     private boolean isLastOnePhaseQuery(String sql) {
-        return sql.contains("/*last one phase query*/");
+        return getComment(sql).equals("last one phase query");
+    }
+
+    private String getComment(final String sql) {
+        String result = "";
+        if (sql.startsWith(COMMENT_PREFIX)) {
+            result = sql.substring(2, sql.indexOf(COMMENT_SUFFIX));
+        }
+
+        return result;
     }
     
     private Collection<DatabasePacket<?>> processQuery(final QueryResponseHeader queryResponseHeader) {

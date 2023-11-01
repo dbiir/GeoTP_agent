@@ -80,6 +80,10 @@ public final class ConnectionSession {
 
     private boolean currentTransactionOk;
 
+    private boolean isLast = false;
+
+    private boolean isLastOnePhase = false;
+
     public ConnectionSession(final DatabaseType protocolType, final TransactionType initialTransactionType, final AttributeMap attributeMap) {
         this.protocolType = protocolType;
         transactionStatus = new TransactionStatus(initialTransactionType);

@@ -53,14 +53,16 @@ public class AgentAsyncPrepare implements Runnable {
 
     @Override
     public void run() {
-        resetConnectionSession();
+//        resetConnectionSession();
         CustomXID customXID = connectionSession.getXID();
         assert (AgentAsyncXAManager.getInstance().getXAStates().containsKey(customXID));
         XATransactionState state = AgentAsyncXAManager.getInstance().getXAStates().get(customXID);
         XAStateMachine machine = new MySQLXAStateMachine(customXID);
 
-        String nextCommand = machine.NextControlSQL(state, false);
-        XATransactionState nextState = XATransactionState.NUM_OF_STATES;
+        assert (state == XATransactionState.ACTIVE);
+        XATransactionState nextState = machine.NextState(state, true, onePhase, false);
+
+        String nextCommand = machine.NextControlSQL(nextState, false);
         try {
             // TODO: 1. execute("xa end");
             executeXACommand(nextCommand);
@@ -78,6 +80,8 @@ public class AgentAsyncPrepare implements Runnable {
         }
 
         if (onePhase) {
+            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.currentTimeMillis(), "");
+            AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
             return;
         }
 
@@ -88,11 +92,12 @@ public class AgentAsyncPrepare implements Runnable {
         }
 
         // xa prepare
-        nextCommand = machine.NextControlSQL(state, false);
+        nextState = machine.NextTwoPhaseState(state, false);
+        assert nextState == XATransactionState.PREPARED;
+        nextCommand = machine.NextControlSQL(nextState, false);
         try {
             // TODO: 2. execute("xa prepare");
             executeXACommand(nextCommand);
-            nextState = machine.NextTwoPhaseState(state, false);
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.PREPARED);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.PREPARED, System.currentTimeMillis(), "");
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
@@ -107,6 +112,7 @@ public class AgentAsyncPrepare implements Runnable {
     }
 
     private void executeXACommand(String sql) throws SQLException {
+        System.out.println("execute XA Command: " + sql);
         MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
         SQLParserRule sqlParserRule = metaDataContexts.getMetaData().getGlobalRuleMetaData().getSingleRule(SQLParserRule.class);
         SQLStatement sqlStatement = sqlParserRule.getSQLParserEngine(databaseType.getType()).parse(sql);
@@ -119,8 +125,6 @@ public class AgentAsyncPrepare implements Runnable {
     private boolean isPrepareFinish(XATransactionState state) {
         return state == XATransactionState.ABORTED || state == XATransactionState.COMMITTED;
     }
-
-
 
     private void resetConnectionSession() {
         connectionSession.clearQueryContext();

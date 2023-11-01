@@ -26,7 +26,9 @@ public class AgentAsyncSendingThread implements Runnable{
             }
             try {
                 ObjectMapper mapper = new ObjectMapper();
+                System.out.println("sending: " + mapper.writeValueAsString(message));
                 AsyncMessageChannelInboundHandler.sendMessage(mapper.writeValueAsBytes(message));
+                Thread.sleep(1);
             } catch (InterruptedException | JsonProcessingException e) {
                 throw new RuntimeException(e);
             }

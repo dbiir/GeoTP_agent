@@ -27,7 +27,10 @@ import org.dbiir.harp.db.protocol.packet.CommandPacket;
 import org.dbiir.harp.db.protocol.packet.CommandPacketType;
 import org.dbiir.harp.db.protocol.packet.DatabasePacket;
 import org.dbiir.harp.db.protocol.payload.PacketPayload;
+import org.dbiir.harp.frontend.async.AgentAsyncPrepare;
 import org.dbiir.harp.utils.common.config.props.ConfigurationPropertyKey;
+import org.dbiir.harp.utils.common.database.type.DatabaseType;
+import org.dbiir.harp.utils.common.spi.type.typed.TypedSPILoader;
 import org.dbiir.harp.utils.exceptions.external.SQLDialectException;
 import org.dbiir.harp.utils.exceptions.external.sql.AgentSQLException;
 import org.dbiir.harp.backend.context.ProxyContext;
@@ -38,6 +41,7 @@ import org.dbiir.harp.frontend.command.executor.QueryCommandExecutor;
 import org.dbiir.harp.frontend.constant.LogMDCConstants;
 import org.dbiir.harp.frontend.exception.ExpectedExceptions;
 import org.dbiir.harp.frontend.spi.DatabaseProtocolFrontendEngine;
+import org.dbiir.harp.utils.transcation.AgentAsyncXAManager;
 import org.slf4j.MDC;
 
 import java.sql.SQLException;
@@ -99,6 +103,18 @@ public final class CommandExecutorTask implements Runnable {
             context.pipeline().fireUserEventTriggered(new WriteCompleteEvent());
             if (sqlShowEnabled) {
                 clearLogMDC();
+            }
+            if (AgentAsyncXAManager.getInstance().asyncPreparation()) {
+                DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
+                if (connectionSession.isLastOnePhase()) {
+                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType,  true);
+                    Thread thread = new Thread(agentAsyncPrepare);
+                    AgentAsyncXAManager.getInstance().addAsyncThread(thread);
+                } else if (connectionSession.isLast()) {
+                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType, false);
+                    Thread thread = new Thread(agentAsyncPrepare);
+                    AgentAsyncXAManager.getInstance().addAsyncThread(thread);
+                }
             }
         }
     }

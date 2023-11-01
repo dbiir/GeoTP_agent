@@ -75,26 +75,20 @@ public class MySQLXAStateMachine implements XAStateMachine {
     public String NextControlSQL(XATransactionState state, boolean isOnePhase) {
         String result = "";
         switch (state) {
-            case IDLE -> {
-                result = "xa end " + xid.toString();
-            }
-            case PREPARED -> {
-                result = "xa prepare" + xid.toString();
-            }
+            case IDLE -> result = "xa end " + xid.toString();
+            case PREPARED -> result = "xa prepare" + xid.toString();
             case COMMITTED -> {
+                System.out.println("xxxxxxxxxxxx");
+                assert false;
                 if (isOnePhase) {
                     result = "xa commit " + xid.toString() + " one phase";
                 } else {
                     result = "xa commit " + xid.toString();
                 }
             }
-            case ABORTED -> {
-                result = "xa rollback " + xid.toString();
-            }
+            case ABORTED -> result = "xa rollback " + xid.toString();
             case ACTIVE, FAILED -> {}
-            default -> {
-                log.error("XA Transaction {} occur exception, state is {}.", xid.toString(), state);
-            }
+            default -> log.error("XA Transaction {} occur exception, state is {}.", xid.toString(), state);
         }
 
         return result;
@@ -108,22 +102,14 @@ public class MySQLXAStateMachine implements XAStateMachine {
     public XATransactionState ActiveRollback(XATransactionState state) {
         XATransactionState nextState = NUM_OF_STATES;
         switch (state) {
-            case ACTIVE -> {
-                nextState = IDLE;
-            }
-            case IDLE, PREPARED, FAILED -> {
-                nextState = ABORTED;
-            }
-            case COMMITTED -> {
-                log.error("XA Transaction {} occur exception, transaction is already committed, but wants abort.", xid.toString());
-            }
+            case ACTIVE -> nextState = IDLE;
+            case IDLE, PREPARED, FAILED -> nextState = ABORTED;
+            case COMMITTED -> log.error("XA Transaction {} occur exception, transaction is already committed, but wants abort.", xid.toString());
             case ABORTED -> {
                 log.warn("XA Transaction {} occur exception, transaction is already aborted.", xid.toString());
                 nextState = ABORTED;
             }
-            default -> {
-                log.error("XA Transaction {} occur exception, state is {}.", xid.toString(), state);
-            }
+            default -> log.error("XA Transaction {} occur exception, state is {}.", xid.toString(), state);
         }
 
         return nextState;
