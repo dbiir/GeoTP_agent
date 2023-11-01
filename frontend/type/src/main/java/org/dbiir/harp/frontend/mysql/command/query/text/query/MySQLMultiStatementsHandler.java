@@ -334,8 +334,10 @@ public final class MySQLMultiStatementsHandler implements ProxyBackendHandler {
         protected List<ExecuteResult> executeSQL(final String sql, final Statement statement, final ConnectionMode connectionMode, final DatabaseType storageType) throws SQLException {
             boolean resultsAvailable = false;
             try {
+                log.info("Start Execute: " + (System.nanoTime()));
                 resultsAvailable = statement.execute(sql);
-                
+                log.info("Finish Execute: " + (System.nanoTime()));
+
                 List<ExecuteResult> list = new ArrayList<>();
                 while (true) {
                     if (resultsAvailable) {

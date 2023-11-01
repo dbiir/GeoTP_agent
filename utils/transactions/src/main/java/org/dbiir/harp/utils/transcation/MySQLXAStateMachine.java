@@ -76,10 +76,9 @@ public class MySQLXAStateMachine implements XAStateMachine {
         String result = "";
         switch (state) {
             case IDLE -> result = "xa end " + xid.toString();
-            case PREPARED -> result = "xa prepare" + xid.toString();
+            case PREPARED -> result = "xa prepare " + xid.toString();
             case COMMITTED -> {
-                System.out.println("xxxxxxxxxxxx");
-                assert false;
+                log.error("XA Transaction {} can not commit async.", xid.toString());
                 if (isOnePhase) {
                     result = "xa commit " + xid.toString() + " one phase";
                 } else {

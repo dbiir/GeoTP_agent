@@ -1,5 +1,6 @@
 package org.dbiir.harp.bootstrap;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dbiir.harp.backend.config.ProxyConfigurationLoader;
 import org.dbiir.harp.backend.config.YamlProxyConfiguration;
 import org.dbiir.harp.bootstrap.arguments.BootstrapArguments;
@@ -15,12 +16,13 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+@Slf4j
 public class Bootstrap {
     /*
      * @params args: args[0] -- port; args[1] -- address/socket_path; args[3] -- config path;
      */
     public static void main(String[] args) throws IOException, SQLException, InterruptedException {
-        System.out.println(System.getProperty("java.class.path"));
+        log.info(System.getProperty("java.class.path"));
         BootstrapArguments bootstrapArgs = new BootstrapArguments(preProcessingArgs(args));
         YamlProxyConfiguration yamlConfig = ProxyConfigurationLoader.load(bootstrapArgs.getConfigurationPath());
         ConfigurationProperties configurationProperties = new ConfigurationProperties(yamlConfig.getServerConfiguration().getProps());

@@ -65,14 +65,16 @@ public class AgentAsyncPrepare implements Runnable {
         String nextCommand = machine.NextControlSQL(nextState, false);
         try {
             // TODO: 1. execute("xa end");
+            log.info("XA End Start Time" + System.nanoTime());
             executeXACommand(nextCommand);
+            log.info("XA End Finish Time" + System.nanoTime());
             nextState = machine.NextTwoPhaseState(state, false);
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.IDLE);
             state = nextState;
         } catch (Exception ex) {
-            log.debug("async xa end failed. {}", ex.toString());
+            log.warn("async xa end failed. {}", ex.toString());
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.ROLLBACK_ONLY);
-            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.ROLLBACK_ONLY, System.currentTimeMillis(), ex.toString());
+            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.ROLLBACK_ONLY, System.nanoTime(), ex.toString());
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
             return;
         } finally {
@@ -80,13 +82,13 @@ public class AgentAsyncPrepare implements Runnable {
         }
 
         if (onePhase) {
-            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.currentTimeMillis(), "");
+            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.nanoTime(), "");
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
             return;
         }
 
         if (!connectionSession.isCurrentTransactionOk()) {
-            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.currentTimeMillis(), "");
+            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.nanoTime(), "");
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
             return;
         }
@@ -97,14 +99,17 @@ public class AgentAsyncPrepare implements Runnable {
         nextCommand = machine.NextControlSQL(nextState, false);
         try {
             // TODO: 2. execute("xa prepare");
+            log.info("XA Prepare Start Time" + System.nanoTime());
             executeXACommand(nextCommand);
+            log.info("XA Prepare Finish Time" + System.nanoTime());
+
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.PREPARED);
-            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.PREPARED, System.currentTimeMillis(), "");
+            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.PREPARED, System.nanoTime(), "");
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
         } catch (Exception ex) {
             log.debug("async xa prepare failed. {}", ex.toString());
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.FAILED);
-            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.FAILED, System.currentTimeMillis(), ex.toString());
+            AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.FAILED, System.nanoTime(), ex.toString());
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
         } finally {
             resetConnectionSession();
@@ -112,7 +117,7 @@ public class AgentAsyncPrepare implements Runnable {
     }
 
     private void executeXACommand(String sql) throws SQLException {
-        System.out.println("execute XA Command: " + sql);
+        log.info("execute XA Command: " + sql);
         MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
         SQLParserRule sqlParserRule = metaDataContexts.getMetaData().getGlobalRuleMetaData().getSingleRule(SQLParserRule.class);
         SQLStatement sqlStatement = sqlParserRule.getSQLParserEngine(databaseType.getType()).parse(sql);

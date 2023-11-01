@@ -73,7 +73,7 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     
     public MySQLComQueryPacketExecutor(final MySQLComQueryPacket packet, final ConnectionSession connectionSession) throws SQLException {
 //        System.out.println("Thread " + Thread.currentThread().getId() + " " + Thread.currentThread().getName() + "connectionSession: " + connectionSession);
-        System.out.println("execute: " + packet.getSql());
+        System.out.println("execute: " + packet.getSql() + " \nat " + System.nanoTime());
         this.connectionSession = connectionSession;
         DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
         SQLStatement sqlStatement = parseSql1(packet.getSql(), databaseType);
@@ -136,9 +136,7 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
         Collection<DatabasePacket<?>> result = new LinkedList<>();
         List<ResponseHeader> responseHeader;
         try {
-             long startTime = System.currentTimeMillis();
             responseHeader = proxyBackendHandler.execute();
-             System.out.println("executeTime: " + (System.currentTimeMillis() - startTime) + " ms");
         } catch (SQLException ex) {
             connectionSession.setCurrentTransactionOk(false);
             throw ex;
