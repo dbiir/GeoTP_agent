@@ -53,7 +53,6 @@ public class AgentAsyncPrepare implements Runnable {
 
     @Override
     public void run() {
-//        resetConnectionSession();
         CustomXID customXID = connectionSession.getXID();
         assert (AgentAsyncXAManager.getInstance().getXAStates().containsKey(customXID));
         XATransactionState state = AgentAsyncXAManager.getInstance().getXAStates().get(customXID);
@@ -64,15 +63,17 @@ public class AgentAsyncPrepare implements Runnable {
 
         String nextCommand = machine.NextControlSQL(nextState, false);
         try {
-            // TODO: 1. execute("xa end");
-            log.info("XA End Start Time" + System.nanoTime());
+            long startEnd = System.nanoTime();
+            log.info("XA " + connectionSession.getXID() + " End Start Time: " + System.nanoTime());
             executeXACommand(nextCommand);
-            log.info("XA End Finish Time" + System.nanoTime());
+            log.info("XA " + connectionSession.getXID() + " End Finish Time: " + System.nanoTime() + " -- execute time: " + (System.nanoTime() - startEnd) / 1000 + " us");
+
             nextState = machine.NextTwoPhaseState(state, false);
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.IDLE);
             state = nextState;
         } catch (Exception ex) {
             log.warn("async xa end failed. {}", ex.toString());
+            ex.printStackTrace();
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.ROLLBACK_ONLY);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.ROLLBACK_ONLY, System.nanoTime(), ex.toString());
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
@@ -98,16 +99,17 @@ public class AgentAsyncPrepare implements Runnable {
         assert nextState == XATransactionState.PREPARED;
         nextCommand = machine.NextControlSQL(nextState, false);
         try {
-            // TODO: 2. execute("xa prepare");
-            log.info("XA Prepare Start Time" + System.nanoTime());
+            long startPrepare = System.nanoTime();
+            log.info("XA " + connectionSession.getXID() + " Prepare Start Time: " + System.nanoTime());
             executeXACommand(nextCommand);
-            log.info("XA Prepare Finish Time" + System.nanoTime());
+            log.info("XA " + connectionSession.getXID() + " Prepare Finish Time: " + System.nanoTime() + " -- execute time: " + (System.nanoTime() - startPrepare) / 1000 + " us");
 
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.PREPARED);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.PREPARED, System.nanoTime(), "");
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
         } catch (Exception ex) {
-            log.debug("async xa prepare failed. {}", ex.toString());
+            log.warn("async xa prepare failed. {}", ex.toString());
+            ex.printStackTrace();
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.FAILED);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.FAILED, System.nanoTime(), ex.toString());
             AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
@@ -118,17 +120,16 @@ public class AgentAsyncPrepare implements Runnable {
 
     private void executeXACommand(String sql) throws SQLException {
         log.info("execute XA Command: " + sql);
+        if (sql == null || sql.length() == 0){
+            log.error("xa command can not be null", connectionSession.getXID());
+            return;
+        }
         MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
         SQLParserRule sqlParserRule = metaDataContexts.getMetaData().getGlobalRuleMetaData().getSingleRule(SQLParserRule.class);
         SQLStatement sqlStatement = sqlParserRule.getSQLParserEngine(databaseType.getType()).parse(sql);
         ProxyBackendHandler proxyBackendHandler = ProxyBackendHandlerFactory.newInstance(databaseType, sql, sqlStatement, connectionSession, null);
 
         proxyBackendHandler.execute();
-    }
-
-
-    private boolean isPrepareFinish(XATransactionState state) {
-        return state == XATransactionState.ABORTED || state == XATransactionState.COMMITTED;
     }
 
     private void resetConnectionSession() {

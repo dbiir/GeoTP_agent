@@ -83,7 +83,6 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
                 List<ResponseHeader> header = backendHandler.execute();
                 if (AgentAsyncXAManager.getInstance().getXAStates().containsKey(customXID))
                     log.warn("xid should be unique");
-                System.out.println("agent's xid: " + customXID.toString());
                 AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.ACTIVE);
                 connectionSession.getConnectionContext().getTransactionContext().setInTransaction(true);
                 connectionSession.getTransactionStatus().setInTransaction(true);
