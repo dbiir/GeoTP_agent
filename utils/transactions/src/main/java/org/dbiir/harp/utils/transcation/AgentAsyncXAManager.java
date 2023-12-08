@@ -4,15 +4,20 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-@RequiredArgsConstructor
 public class AgentAsyncXAManager {
     static AgentAsyncXAManager Instance = new AgentAsyncXAManager();
+    public static int msgQueueLen = 4;
+
+    public AgentAsyncXAManager() {
+        for (int i = 0; i < msgQueueLen; i++) {
+            messages.add(new LinkedList<>());
+        }
+        System.out.println(messages.size());
+    }
 
     public static AgentAsyncXAManager getInstance() {
         return Instance;
@@ -22,9 +27,9 @@ public class AgentAsyncXAManager {
 
     private final Collection<Thread> asyncThreads = new LinkedList<>();
 
-    private final HashMap<CustomXID, XATransactionState> XAStates = new HashMap<>();
+    private final ConcurrentHashMap<CustomXID, XATransactionState> XAStates = new ConcurrentHashMap<>(2048, 0.75f, 256);
 
-    private final List<AsyncMessageFromAgent> messages = new LinkedList<>();
+    private final List<List<AsyncMessageFromAgent>> messages = new ArrayList<>();
 
     private String algorithm = "";
 
@@ -34,13 +39,13 @@ public class AgentAsyncXAManager {
      * @param message
      * @return message if messages not empty
      */
-    synchronized public AsyncMessageFromAgent modifyMessages(boolean op, AsyncMessageFromAgent message) {
+    synchronized public AsyncMessageFromAgent modifyMessages(boolean op, AsyncMessageFromAgent message, int id) {
         if (op) {
-            messages.add(message);
+            messages.get(id % msgQueueLen).add(message);
         } else {
-            if (messages.size() >= 1) {
-                AsyncMessageFromAgent result = messages.get(0);
-                messages.remove(0);
+            if (messages.get(id).size() >= 1) {
+                AsyncMessageFromAgent result = messages.get(id).get(0);
+                messages.get(id).remove(0);
                 return result;
             }
         }

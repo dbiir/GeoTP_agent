@@ -37,6 +37,7 @@ import org.dbiir.harp.frontend.netty.AsyncMessageHandlerInitializer;
 import org.dbiir.harp.frontend.netty.ServerHandlerInitializer;
 import org.dbiir.harp.frontend.protocol.FrontDatabaseProtocolTypeFactory;
 import org.dbiir.harp.utils.transcation.AgentAsyncThreadCollector;
+import org.dbiir.harp.utils.transcation.AgentAsyncXAManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -150,9 +151,11 @@ public final class HarpProxy {
         AgentAsyncThreadCollector agentAsyncThreadCollector = new AgentAsyncThreadCollector();
         Thread thread1 = new Thread(agentAsyncThreadCollector);
         thread1.start();
-        AgentAsyncSendingThread agentAsyncSendingThread = new AgentAsyncSendingThread();
-        Thread thread2 = new Thread(agentAsyncSendingThread);
-        thread2.start();
+        for (int i = 0; i < AgentAsyncXAManager.msgQueueLen; i++) {
+            AgentAsyncSendingThread agentAsyncSendingThread = new AgentAsyncSendingThread(i);
+            Thread thread2 = new Thread(agentAsyncSendingThread);
+            thread2.start();
+        }
     }
     
     private void createEventLoopGroup() {

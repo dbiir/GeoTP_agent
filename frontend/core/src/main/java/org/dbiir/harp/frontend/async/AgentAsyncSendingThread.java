@@ -12,23 +12,28 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class AgentAsyncSendingThread implements Runnable{
+    private final int thread_id;
+
+    public AgentAsyncSendingThread(int threadId) {
+        thread_id = threadId;
+    }
+
     @Override
     public void run() {
         while (true) {
-            AsyncMessageFromAgent message = AgentAsyncXAManager.getInstance().modifyMessages(false, null);
+            AsyncMessageFromAgent message = AgentAsyncXAManager.getInstance().modifyMessages(false, null, thread_id);
             while (message == null) {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                message = AgentAsyncXAManager.getInstance().modifyMessages(false, null);
+                message = AgentAsyncXAManager.getInstance().modifyMessages(false, null, thread_id);
             }
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 System.out.println("sending: " + mapper.writeValueAsString(message));
                 AsyncMessageChannelInboundHandler.sendMessage(mapper.writeValueAsBytes(message));
-                Thread.sleep(1);
             } catch (InterruptedException | JsonProcessingException e) {
                 throw new RuntimeException(e);
             }

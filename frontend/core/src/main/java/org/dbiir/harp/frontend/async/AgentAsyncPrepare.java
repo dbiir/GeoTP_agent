@@ -76,7 +76,7 @@ public class AgentAsyncPrepare implements Runnable {
             ex.printStackTrace();
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.ROLLBACK_ONLY);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.ROLLBACK_ONLY, System.nanoTime(), ex.toString());
-            AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
+            AgentAsyncXAManager.getInstance().modifyMessages(true, message, (int) Thread.currentThread().getId()); // add to message queue;
             return;
         } finally {
             resetConnectionSession();
@@ -84,13 +84,13 @@ public class AgentAsyncPrepare implements Runnable {
 
         if (onePhase) {
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.nanoTime(), "");
-            AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
+            AgentAsyncXAManager.getInstance().modifyMessages(true, message, (int) Thread.currentThread().getId()); // add to message queue;
             return;
         }
 
         if (!connectionSession.isCurrentTransactionOk()) {
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.IDLE, System.nanoTime(), "");
-            AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
+            AgentAsyncXAManager.getInstance().modifyMessages(true, message, (int) Thread.currentThread().getId()); // add to message queue;
             return;
         }
 
@@ -106,13 +106,13 @@ public class AgentAsyncPrepare implements Runnable {
 
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.PREPARED);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.PREPARED, System.nanoTime(), "");
-            AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
+            AgentAsyncXAManager.getInstance().modifyMessages(true, message, (int) Thread.currentThread().getId()); // add to message queue;
         } catch (Exception ex) {
             log.warn("async xa prepare failed. {}", ex.toString());
             ex.printStackTrace();
             AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.FAILED);
             AsyncMessageFromAgent message = new AsyncMessageFromAgent(customXID.toString(), XATransactionState.FAILED, System.nanoTime(), ex.toString());
-            AgentAsyncXAManager.getInstance().modifyMessages(true, message); // add to message queue;
+            AgentAsyncXAManager.getInstance().modifyMessages(true, message, (int) Thread.currentThread().getId()); // add to message queue;
         } finally {
             resetConnectionSession();
         }
