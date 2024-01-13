@@ -30,6 +30,8 @@ import org.dbiir.harp.db.protocol.payload.PacketPayload;
 import org.dbiir.harp.frontend.async.AgentAsyncPrepare;
 import org.dbiir.harp.utils.common.config.props.ConfigurationPropertyKey;
 import org.dbiir.harp.utils.common.database.type.DatabaseType;
+import org.dbiir.harp.utils.common.database.type.dialect.MySQLDatabaseType;
+import org.dbiir.harp.utils.common.metadata.database.AgentDatabase;
 import org.dbiir.harp.utils.common.spi.type.typed.TypedSPILoader;
 import org.dbiir.harp.utils.exceptions.external.SQLDialectException;
 import org.dbiir.harp.utils.exceptions.external.sql.AgentSQLException;
@@ -89,6 +91,7 @@ public final class CommandExecutorTask implements Runnable {
             // CHECKSTYLE:ON
             processException(new RuntimeException(error));
         } finally {
+            AgentDatabase database = ProxyContext.getInstance().getDatabase(connectionSession.getDatabaseName());
             connectionSession.clearQueryContext();
             Collection<SQLException> exceptions = Collections.emptyList();
             try {
@@ -105,13 +108,12 @@ public final class CommandExecutorTask implements Runnable {
                 clearLogMDC();
             }
             if (AgentAsyncXAManager.getInstance().asyncPreparation()) {
-                DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
                 if (connectionSession.isLastOnePhase()) {
-                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType,  true);
+                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, database.getProtocolType(),  true);
                     Thread thread = new Thread(agentAsyncPrepare);
                     AgentAsyncXAManager.getInstance().addAsyncThread(thread);
                 } else if (connectionSession.isLast()) {
-                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, databaseType, false);
+                    AgentAsyncPrepare agentAsyncPrepare = new AgentAsyncPrepare(connectionSession, database.getProtocolType(), false);
                     Thread thread = new Thread(agentAsyncPrepare);
                     AgentAsyncXAManager.getInstance().addAsyncThread(thread);
                 }

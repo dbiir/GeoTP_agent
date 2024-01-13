@@ -27,6 +27,7 @@ import org.dbiir.harp.backend.response.header.ResponseHeader;
 import org.dbiir.harp.backend.session.ConnectionSession;
 import org.dbiir.harp.utils.binder.QueryContext;
 import org.dbiir.harp.utils.binder.statement.SQLStatementContext;
+import org.dbiir.harp.utils.common.database.type.dialect.PostgreSQLDatabaseType;
 import org.dbiir.harp.utils.common.statement.tcl.TCLStatement;
 import org.dbiir.harp.utils.common.statement.tcl.XAStatement;
 import org.dbiir.harp.utils.transcation.AgentAsyncXAManager;
@@ -57,6 +58,9 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
         this.connectionSession = connectionSession;
         QueryContext queryContext = new QueryContext(sqlStatementContext, sql, Collections.emptyList());
         backendHandler = DatabaseConnectorFactory.getInstance().newInstance(queryContext, connectionSession.getBackendConnection(), false);
+        if (backendHandler.getDatabaseType() instanceof PostgreSQLDatabaseType) {
+            queryContext.setSQL(convertMysqlToPostgresql(sql));
+        }
     }
     
     @Override
@@ -72,6 +76,7 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
     @Override
     public List<ResponseHeader> execute() throws SQLException {
 //        System.out.println("backendHandler: " + backendHandler);
+        List<ResponseHeader> result = null;
         CustomXID customXID = new CustomXID(tclStatement.getXid());
         switch (tclStatement.getOp()) {
             case "START":
@@ -89,7 +94,17 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
                 connectionSession.setXID(customXID);
                 return header;
             case "END":
+                AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.IDLE);
+                return backendHandler.execute();
             case "PREPARE":
+                try {
+                    result = backendHandler.execute();
+                    AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.PREPARED);
+                } catch (SQLException ex) {
+                    AgentAsyncXAManager.getInstance().getXAStates().put(customXID, XATransactionState.FAILED);
+                    throw ex;
+                }
+                return result;
             case "RECOVER":
                 return backendHandler.execute();
             case "COMMIT":
@@ -123,5 +138,60 @@ public final class TransactionXAHandler implements ProxyBackendHandler {
                 log.error("xa transaction can not commit or rollback");
             }
         }
+    }
+
+    private String convertMysqlToPostgresql(String sql) {
+        String result = "";
+        CustomXID customXID = new CustomXID(tclStatement.getXid());
+
+        switch (tclStatement.getOp()) {
+            case "START":
+            case "BEGIN":
+                result = "BEGIN";
+                break;
+            case "END":
+                result = "";
+                break;
+            case "RECOVER":
+                result = "SELECT gid FROM pg_prepared_xacts where database = current_database()";
+                break;
+            case "PREPARE":
+                result = "PREPARE TRANSACTION '" + tclStatement.getXid() + "'";
+                break;
+            case "COMMIT":
+                if (AgentAsyncXAManager.getInstance().getXAStates().containsKey(customXID)) {
+                    XATransactionState state = AgentAsyncXAManager.getInstance().getXAStates().get(customXID);
+                    if (state == XATransactionState.PREPARED || connectionSession.isLast()){
+                        result = "COMMIT PREPARED '" + tclStatement.getXid() + "'";
+                    } else if (state == XATransactionState.ACTIVE || state == XATransactionState.IDLE || connectionSession.isLastOnePhase()) {
+                        result = "COMMIT";
+                    } else {
+                        log.error("xa transaction can not commit or rollback");
+                    }
+                } else {
+                    log.error("xa transaction can not commit or rollback");
+                }
+//                if (sql.toLowerCase().contains("one phase")) {
+//                    // do not need to prepare
+//                    result = "COMMIT";
+//                } else {
+//                    result = "COMMIT PREPARED '" + tclStatement.getXid() + "'";
+//                }
+                break;
+            case "ROLLBACK":
+                if (AgentAsyncXAManager.getInstance().getXAStates().containsKey(customXID)) {
+                    XATransactionState state = AgentAsyncXAManager.getInstance().getXAStates().get(customXID);
+                    if (state == XATransactionState.PREPARED) {
+                        result = "ROLLBACK PREPARED '" + tclStatement.getXid() + "'";
+                    } else {
+                        result = "ROLLBACK";
+                    }
+                } else {
+                    log.error("xa transaction can not commit or rollback");
+                }
+                break;
+        }
+        log.info("After convert: " + result + "; Origin: " + sql);
+        return result;
     }
 }

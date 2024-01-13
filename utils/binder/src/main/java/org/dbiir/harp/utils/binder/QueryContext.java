@@ -34,7 +34,7 @@ public final class QueryContext {
     
     private final SQLStatementContext<?> sqlStatementContext;
     
-    private final String sql;
+    private String sql;
     
     private final List<Object> parameters;
     
@@ -60,6 +60,10 @@ public final class QueryContext {
         databaseName = sqlStatementContext instanceof TableAvailable ? ((TableAvailable) sqlStatementContext).getTablesContext().getDatabaseName().orElse(null) : null;
         this.hintValueContext = hintValueContext;
         this.useCache = useCache;
+    }
+
+    public void setSQL(String dst_sql) {
+        sql = dst_sql;
     }
     
     /**

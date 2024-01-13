@@ -47,6 +47,7 @@ import org.dbiir.harp.utils.binder.segment.insert.keygen.GeneratedKeyContext;
 import org.dbiir.harp.utils.binder.statement.SQLStatementContext;
 import org.dbiir.harp.utils.binder.statement.dml.InsertStatementContext;
 import org.dbiir.harp.utils.common.config.props.ConfigurationPropertyKey;
+import org.dbiir.harp.utils.common.database.type.DatabaseType;
 import org.dbiir.harp.utils.common.metadata.database.AgentDatabase;
 import org.dbiir.harp.utils.common.metadata.database.schema.util.SystemSchemaUtils;
 import org.dbiir.harp.utils.common.rule.identifier.type.DataNodeContainedRule;
@@ -85,6 +86,14 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
     private List<QueryHeader> queryHeaders;
 
     private MergedResult mergedResult;
+
+    public DatabaseType getDatabaseType() {
+        DatabaseType databaseType = database.getResourceMetaData().getStorageTypes().get("ds_1");
+        if (databaseType != null) {
+            return databaseType;
+        }
+        return database.getProtocolType();
+    }
 
     public DatabaseConnector(final String driverType, final AgentDatabase database, final QueryContext queryContext, final BackendConnection backendConnection) {
         SQLStatementContext<?> sqlStatementContext = queryContext.getSqlStatementContext();

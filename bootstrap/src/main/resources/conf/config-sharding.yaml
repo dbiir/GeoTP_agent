@@ -110,9 +110,27 @@
 #
 ######################################################################################################
 
-databaseName: sharding_db
+databaseName: harp
 
 dataSources:
+#  ds_0:
+#    url: jdbc:mysql://127.0.0.1:3306/harp?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&pinGlobalTxToPhysicalConnection=true
+#    username: shardingsphere
+#    password: Ss123!@#
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 200
+#    minPoolSize: 1
+#  ds_0:
+#    url: jdbc:mysql://10.77.70.85:3306/harp?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&pinGlobalTxToPhysicalConnection=true
+#    username: shardingsphere
+#    password: Ss123!@#
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 200
+#    minPoolSize: 1
   ds_0:
     url: jdbc:mysql://127.0.0.1:3306/harp?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&pinGlobalTxToPhysicalConnection=true
     username: shardingsphere
@@ -123,13 +141,13 @@ dataSources:
     maxPoolSize: 200
     minPoolSize: 1
 #  ds_1:
-#    url: jdbc:mysql://9.134.123.45:3306/harp?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true&pinGlobalTxToPhysicalConnection=true
-#    username: shardingsphere
-#    password: Ss123!@#
+#    url: jdbc:postgresql://10.77.70.89:5432/test?sslmode=disable&reWriteBatchedInserts=true
+#    username: syp
+#    password: sunyipeng
 #    connectionTimeoutMilliseconds: 30000
 #    idleTimeoutMilliseconds: 60000
 #    maxLifetimeMilliseconds: 1800000
-#    maxPoolSize: 200
+#    maxPoolSize: 50
 #    minPoolSize: 1
 
 rules:

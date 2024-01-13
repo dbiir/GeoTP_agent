@@ -43,8 +43,8 @@ authority:
     type: ALL_PERMITTED
 
 transaction:
-  defaultType: LOCAL
-  providerType: Atomikos
+  defaultType: XA
+  providerType: Harp
 
 sqlParser:
   sqlCommentParseEnabled: true

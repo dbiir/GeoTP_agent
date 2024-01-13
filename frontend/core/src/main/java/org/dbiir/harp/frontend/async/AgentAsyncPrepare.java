@@ -18,6 +18,7 @@ import org.dbiir.harp.frontend.exception.ExpectedExceptions;
 import org.dbiir.harp.mode.metadata.MetaDataContexts;
 import org.dbiir.harp.parser.rule.SQLParserRule;
 import org.dbiir.harp.utils.common.database.type.DatabaseType;
+import org.dbiir.harp.utils.common.database.type.dialect.MySQLDatabaseType;
 import org.dbiir.harp.utils.common.statement.SQLStatement;
 import org.dbiir.harp.utils.transcation.*;
 
@@ -56,7 +57,7 @@ public class AgentAsyncPrepare implements Runnable {
         CustomXID customXID = connectionSession.getXID();
         assert (AgentAsyncXAManager.getInstance().getXAStates().containsKey(customXID));
         XATransactionState state = AgentAsyncXAManager.getInstance().getXAStates().get(customXID);
-        XAStateMachine machine = new MySQLXAStateMachine(customXID);
+        XAStateMachine machine = databaseType instanceof MySQLDatabaseType ? new MySQLXAStateMachine(customXID) : new PostgreSQLXAStateMachine(customXID);
 
         assert (state == XATransactionState.ACTIVE);
         XATransactionState nextState = machine.NextState(state, true, onePhase, false);
@@ -65,7 +66,8 @@ public class AgentAsyncPrepare implements Runnable {
         try {
             long startEnd = System.nanoTime();
             log.info("XA " + connectionSession.getXID() + " End Start Time: " + System.nanoTime());
-            executeXACommand(nextCommand);
+            if (nextCommand.length() == 0)
+                executeXACommand(nextCommand);
             log.info("XA " + connectionSession.getXID() + " End Finish Time: " + System.nanoTime() + " -- execute time: " + (System.nanoTime() - startEnd) / 1000 + " us");
 
             nextState = machine.NextTwoPhaseState(state, false);

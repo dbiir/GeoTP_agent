@@ -13,10 +13,10 @@ public class AgentAsyncXAManager {
     public static int msgQueueLen = 4;
 
     public AgentAsyncXAManager() {
+        msgQueueLen = 4;
         for (int i = 0; i < msgQueueLen; i++) {
             messages.add(new LinkedList<>());
         }
-        System.out.println(messages.size());
     }
 
     public static AgentAsyncXAManager getInstance() {

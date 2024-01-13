@@ -17,4 +17,4 @@ PORT=6603
 CLASS_PATH=${CONF_PATH}:${CLASS_PATH}
 
 # start
-java -cp "$CLASSPATH" "$MAIN_CLASS" "$PORT" "$CONF_PATH" "$ADDRESSES" "$FORCE" "$@"
+exec -a sspagent java -cp "$CLASSPATH" "$MAIN_CLASS" "$PORT" "$CONF_PATH" "$ADDRESSES" "$FORCE" "$@" > agent.log 2>&1

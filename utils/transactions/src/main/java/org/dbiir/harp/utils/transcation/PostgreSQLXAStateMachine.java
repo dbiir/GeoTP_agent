@@ -12,7 +12,7 @@ import static org.dbiir.harp.utils.transcation.XATransactionState.*;
 @Setter
 @Slf4j
 @RequiredArgsConstructor
-public class MySQLXAStateMachine implements XAStateMachine {
+public class PostgreSQLXAStateMachine implements XAStateMachine {
     private final CustomXID xid;
 
     @Override
@@ -75,17 +75,17 @@ public class MySQLXAStateMachine implements XAStateMachine {
     public String NextControlSQL(XATransactionState state, boolean isOnePhase) {
         String result = "";
         switch (state) {
-            case IDLE -> result = "xa end " + xid.toString();
-            case PREPARED -> result = "xa prepare " + xid.toString();
+            case IDLE -> result = "";
+            case PREPARED -> result = "prepare transaction " + xid.toString();
             case COMMITTED -> {
                 log.error("XA Transaction {} can not commit async.", xid.toString());
                 if (isOnePhase) {
-                    result = "xa commit " + xid.toString() + " one phase";
+                    result = "commit";
                 } else {
-                    result = "xa commit " + xid.toString();
+                    result = "commit prepared " + xid.toString();
                 }
             }
-            case ABORTED -> result = "xa rollback " + xid.toString();
+            case ABORTED -> result = "rollback prepared " + xid.toString();
             case ACTIVE, FAILED -> {}
             default -> log.error("XA Transaction {} occur exception, state is {}.", xid.toString(), state);
         }

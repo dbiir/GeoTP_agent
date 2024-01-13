@@ -18,6 +18,7 @@
 package org.dbiir.harp.frontend.mysql.command.query.text.query;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.dbiir.harp.backend.context.ProxyContext;
 import org.dbiir.harp.backend.handler.ProxyBackendHandler;
 import org.dbiir.harp.backend.handler.ProxyBackendHandlerFactory;
@@ -56,6 +57,7 @@ import java.util.List;
 /**
  * COM_QUERY command packet executor for MySQL.
  */
+@Slf4j
 public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     
     private final ConnectionSession connectionSession;
@@ -73,7 +75,7 @@ public final class MySQLComQueryPacketExecutor implements QueryCommandExecutor {
     
     public MySQLComQueryPacketExecutor(final MySQLComQueryPacket packet, final ConnectionSession connectionSession) throws SQLException {
 //        System.out.println("Thread " + Thread.currentThread().getId() + " " + Thread.currentThread().getName() + "connectionSession: " + connectionSession);
-        System.out.println("execute: " + packet.getSql() + " \nat " + System.nanoTime());
+        log.info("execute: " + packet.getSql() + " ||| at " + System.nanoTime());
         this.connectionSession = connectionSession;
         DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
         SQLStatement sqlStatement = parseSql1(packet.getSql(), databaseType);

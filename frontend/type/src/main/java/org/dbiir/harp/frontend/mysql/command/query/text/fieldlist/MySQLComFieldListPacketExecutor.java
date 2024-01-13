@@ -63,6 +63,7 @@ public final class MySQLComFieldListPacketExecutor implements CommandExecutor {
     public Collection<DatabasePacket<?>> execute() throws SQLException {
         String databaseName = connectionSession.getDefaultDatabaseName();
         String sql = String.format(SQL, packet.getTable());
+        System.out.println("field list sql: " + sql);
         MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
         SQLParserRule sqlParserRule = metaDataContexts.getMetaData().getGlobalRuleMetaData().getSingleRule(SQLParserRule.class);
         SQLStatement sqlStatement = sqlParserRule.getSQLParserEngine(TypedSPILoader.getService(DatabaseType.class, "MySQL").getType()).parse(sql);

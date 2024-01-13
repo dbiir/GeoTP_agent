@@ -42,17 +42,18 @@ public final class FrontDatabaseProtocolTypeFactory {
      * @return front database protocol type
      */
     public static DatabaseType getDatabaseType() {
-        Optional<DatabaseType> configuredDatabaseType = findConfiguredDatabaseType();
-        if (configuredDatabaseType.isPresent()) {
-            return configuredDatabaseType.get();
-        }
-        MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
-        if (metaDataContexts.getMetaData().getDatabases().isEmpty()) {
-            return DatabaseTypeEngine.getTrunkDatabaseType(DEFAULT_FRONTEND_DATABASE_PROTOCOL_TYPE);
-        }
-        Optional<AgentDatabase> database = metaDataContexts.getMetaData().getDatabases().values().stream().filter(AgentDatabase::containsDataSource).findFirst();
-        return database.isPresent() ? database.get().getResourceMetaData().getStorageTypes().values().iterator().next()
-                : DatabaseTypeEngine.getTrunkDatabaseType(DEFAULT_FRONTEND_DATABASE_PROTOCOL_TYPE);
+        return DatabaseTypeEngine.getTrunkDatabaseType(DEFAULT_FRONTEND_DATABASE_PROTOCOL_TYPE);
+//        Optional<DatabaseType> configuredDatabaseType = findConfiguredDatabaseType();
+//        if (configuredDatabaseType.isPresent()) {
+//            return configuredDatabaseType.get();
+//        }
+//        MetaDataContexts metaDataContexts = ProxyContext.getInstance().getContextManager().getMetaDataContexts();
+//        if (metaDataContexts.getMetaData().getDatabases().isEmpty()) {
+//            return DatabaseTypeEngine.getTrunkDatabaseType(DEFAULT_FRONTEND_DATABASE_PROTOCOL_TYPE);
+//        }
+//        Optional<AgentDatabase> database = metaDataContexts.getMetaData().getDatabases().values().stream().filter(AgentDatabase::containsDataSource).findFirst();
+//        return database.isPresent() ? database.get().getResourceMetaData().getStorageTypes().values().iterator().next()
+//                : DatabaseTypeEngine.getTrunkDatabaseType(DEFAULT_FRONTEND_DATABASE_PROTOCOL_TYPE);
     }
     
     private static Optional<DatabaseType> findConfiguredDatabaseType() {

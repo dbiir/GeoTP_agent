@@ -18,3 +18,4 @@
 org.dbiir.harp.utils.common.database.type.dialect.MySQLDatabaseType
 org.dbiir.harp.utils.common.database.type.dialect.H2DatabaseType
 org.dbiir.harp.utils.common.database.type.dialect.MariaDBDatabaseType
+org.dbiir.harp.utils.common.database.type.dialect.PostgreSQLDatabaseType
