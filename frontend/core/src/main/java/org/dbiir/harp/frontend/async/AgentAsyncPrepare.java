@@ -66,7 +66,7 @@ public class AgentAsyncPrepare implements Runnable {
         try {
             long startEnd = System.nanoTime();
             log.info("XA " + connectionSession.getXID() + " End Start Time: " + System.nanoTime());
-            if (nextCommand.length() == 0)
+            if (nextCommand.length() != 0)
                 executeXACommand(nextCommand);
             log.info("XA " + connectionSession.getXID() + " End Finish Time: " + System.nanoTime() + " -- execute time: " + (System.nanoTime() - startEnd) / 1000 + " us");
 
